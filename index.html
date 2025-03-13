@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Entregadores</title>
+  <!-- Vuetify e Ícones -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.js"></script>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-app-bar app color="primary" dark>
+        <v-app-bar-nav-icon v-if="isAuthenticated" @click="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-toolbar-title>Bem-vindo, {{ usuario.nome || 'Admin' }}</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn v-if="isAuthenticated" color="error" @click="logout">Sair</v-btn>
+      </v-app-bar>
+
+      <v-navigation-drawer v-if="isAuthenticated" v-model="drawer" app>
+        <v-list>
+          <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title class="headline">Menu</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item @click="tela_atual = 'dashboard'">
+            <v-list-item-icon><v-icon>mdi-view-dashboard</v-icon></v-list-item-icon>
+            <v-list-item-content>Dashboard</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="tela_atual = 'perfil'">
+            <v-list-item-icon><v-icon>mdi-account</v-icon></v-list-item-icon>
+            <v-list-item-content>Perfil</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="tela_atual = 'historico'">
+            <v-list-item-icon><v-icon>mdi-history</v-icon></v-list-item-icon>
+            <v-list-item-content>Histórico</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="tela_atual = 'notificacoes'">
+            <v-list-item-icon><v-icon>mdi-cog</v-icon></v-list-item-icon>
+            <v-list-item-content>Notificacoes</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="tela_atual = 'configuracoes'">
+            <v-list-item-icon><v-icon>mdi-cog</v-icon></v-list-item-icon>
+            <v-list-item-content>Configurações</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+
+      <v-main>
+        <v-container>
+          <template v-if="tela_atual === 'dashboard'">
+            <h2>Dashboard</h2>
+            <v-row>
+              <!-- Campos para selecionar datas -->
+              <v-col cols="12" md="5">
+                <v-text-field
+                  v-model="filtros.dataInicio"
+                  label="Data Início"
+                  type="date"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="5">
+                <v-text-field
+                  v-model="filtros.dataFim"
+                  label="Data Fim"
+                  type="date"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-btn color="primary" block @click="carregarIndicadores">
+                  Filtrar
+                </v-btn>
+              </v-col>
+            </v-row>
+            <!-- Conteúdo do Dashboard -->
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-card color="light-blue lighten-4" outlined>
+                  <v-card-title>Entregas do Dia</v-card-title>
+                  <v-card-text class="text-h5">{{ indicadores.entregasDoDia }}</v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card color="red lighten-4" outlined>
+                  <v-card-title>Cancelamentos</v-card-title>
+                  <v-card-text class="text-h5">{{ indicadores.cancelamentos }}</v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card color="green lighten-4" outlined>
+                  <v-card-title>Ganhos</v-card-title>
+                  <v-card-text class="text-h5">
+                    R$ {{ parseFloat(indicadores.ganhos)  }}
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </template>
+          
+
+          <template v-if="tela_atual === 'perfil1'">
+            <h2>Perfil do Usuário</h2>
+            <v-card v-if="usuario && usuario.nome">
+              <v-card-title>{{ usuario.nome }}</v-card-title>
+              <v-card-text>
+                <p>Email: {{ usuario.email }}</p>
+                <p>Telefone: {{ usuario.telefone || 'Não informado' }}</p>
+                <p>Status: {{ usuario.status || 'Ativo' }}</p>
+              </v-card-text>
+            </v-card>
+            <v-alert v-else type="info">Carregando informações do usuário...</v-alert>
+
+               <!-- Modal para edição -->
+          </template>
+
+            <template v-if="tela_atual === 'perfil'">
+                <h2>Perfil do Usuário</h2>
+                <v-card v-if="usuario && usuario.nome">
+                  <v-card-title>{{ usuario.cliente_nome }}</v-card-title>
+                  <v-card-text>
+                    <p>Email: {{ usuario.email }}</p>
+                    <p>Telefone: {{ usuario.telefone || 'Não informado' }}</p>
+                    <p>Status: {{ usuario.status || 'Ativo' }}</p>
+                  </v-card-text>
+                  <v-card-actions>
+                     <v-btn color="primary" @click="abrirModalEditar">Editar Usuário</v-btn>
+                  </v-card-actions>
+                </v-card>
+                <v-alert v-else type="info">Carregando informações do usuário...</v-alert>
+    
+                <v-dialog v-model="modalEditar" max-width="500px">
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Editar Usuário</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-form ref="form">
+                        <v-text-field
+                          v-model="form.nome"
+                          label="Nome"
+                          required
+                        ></v-text-field>
+                        <v-text-field
+                          v-model="form.endereco"
+                          label="Endereço"
+                        ></v-text-field>
+                        <v-text-field
+                        v-model="form.telefone"
+                        label="telefone"
+                      ></v-text-field>
+                      <v-select
+                      v-model="form.status"
+                      :items="['pendente', 'finalizada', 'cancelada']"
+                      label="Status"
+                      required
+                    ></v-select>
+                        
+                        <v-text-field
+                        v-model="form.email"
+                        label="E-mail"
+                      ></v-text-field>
+                      </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-btn color="primary" @click="atualizarUsuario">Salvar</v-btn>
+                      <v-btn text @click="modalEditar = false">Cancelar</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                
+              </template>
+          
+          
+
+          
+
+          <template v-if="tela_atual === 'bate_papo'">
+            <v-container>
+              <h2>Bate-Papo</h2>
+              <h3>Cliente: Roger Neves</h3>
+              <v-card>
+                <!-- Exibição das mensagens -->
+                <v-card-text class="chat-box">
+                  <div v-for="mensagem in mensagens" :key="mensagem.id" 
+                       :class="{'cliente': mensagem.enviadoPor === 'cliente', 'entregador': mensagem.enviadoPor === 'entregador'}" 
+                       class="mensagem">
+                    <strong>{{ mensagem.enviadoPor === 'cliente' ? 'Você' : 'Entregador' }}:</strong> {{ mensagem.texto }}
+                  </div>
+                </v-card-text>
+          
+                <!-- Campo de envio -->
+                <v-card-actions>
+                  <v-text-field 
+                    v-model="novaMensagem"
+                    label="Digite sua mensagem"
+                    outlined
+                    dense
+                    hide-details
+                    class="campo-mensagem"
+                    @keyup.enter="enviarMensagem"
+                  ></v-text-field>
+                  <v-btn color="primary" @click="enviarMensagem">Enviar</v-btn>
+                </v-card-actions>
+                
+                <!-- Botão para o entregador confirmar que está com o pedido -->
+                <v-card-actions v-if="statusPedido === 'aceito' && !pedidoColetado">
+                  <v-btn color="success" @click="confirmarColeta">
+                    Já estou com o pedido
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-container>
+          </template>
+
+          <template v-if="tela_atual === 'detalhes_pedido'">
+            <v-container>
+                <h2>Detalhes da Entrega</h2>
+                <v-card>
+                    <v-card-title class="headline">
+                        Pedido #{{ entregaAtual?.identify || 'N/A' }}
+                    </v-card-title>
+                    <v-card-text>
+                        <div>
+                            <strong>Cliente:</strong> {{ entregaAtual?.client?.name || 'N/A' }}
+                        </div>
+                        <div>
+                            <strong>Endereço:</strong> {{ entregaAtual?.client?.endereco || 'N/A' }}
+                        </div>
+                        <div>
+                            <strong>Contato:</strong> {{ entregaAtual?.client?.telefone || 'N/A' }}
+                        </div>
+        
+                        <!-- Verifica se entregaAtual.products existe e tem itens antes de acessar -->
+                        <div v-if="entregaAtual?.products?.length">
+                            <strong>Produto:</strong> {{ entregaAtual.products[0].title || 'N/A' }}
+                        </div>
+                        <div v-if="entregaAtual?.products?.length">
+                            <strong>Preço:</strong> R$ {{ entregaAtual.products[0].price ? entregaAtual.products[0].price.toFixed(2) : '0.00' }}
+                        </div>
+                        <div v-if="entregaAtual?.products?.length">
+                            <strong>Descrição:</strong> {{ entregaAtual.products[0].description || 'N/A' }}
+                        </div>
+                        <div v-else>
+                            <strong>Produto:</strong> Nenhum produto disponível.
+                        </div>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn color="success" @click="confirmarEntrega">Confirmar Entrega</v-btn>
+                        <v-btn color="error" @click="cancelarEntrega">Cancelar</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-container>
+        </template>
+        
+        
+        
+          
+
+          <template v-if="tela_atual === 'historico'">
+            <v-container>
+              <h2>Entregas do Usuário</h2>
+              <!-- <v-alert v-if="erro" type="error" dismissible>{{ erro }}</v-alert> -->
+          
+              <v-data-table
+                v-if="entregas.length"
+                :headers="headers"
+                :items="entregas"
+                class="elevation-1"
+              >
+                <template v-slot:item.data_entrega="{ item }">
+                  {{ formatarData(item.data_entrega) }}
+                </template>
+                <template v-slot:item.pedido="{ item }">
+                  <v-card outlined class="pa-3">
+                    <div>
+                      <strong>Cliente:</strong> {{ item.pedido.cliente_nome }}
+                    </div>
+                    <div>
+                      <strong>Endereço:</strong> {{ item.pedido.endereco_entrega }}
+                    </div>
+                    <div>
+                      R$ {{ entregaAtual?.pedido?.valor }}
+                    </div>
+                    <div>
+                      <strong>Detalhes:</strong> {{ item.pedido.detalhes }}
+                    </div>
+                  </v-card>
+                </template>
+                <template v-slot:no-data>
+                  <v-alert type="info" dismissible>Nenhuma entrega encontrada.</v-alert>
+                </template>
+              </v-data-table>
+            </v-container>
+          </template>
+
+                <template v-slot:no-data>
+                  <v-alert type="info" dismissible>Nenhuma entrega encontrada.</v-alert>
+                </template>
+              </v-data-table>
+            </v-container>
+          </template>
+          
+          <template v-if="tela_atual === 'notificacoes'">
+            <h2>Notificações de Entregas</h2>
+            <v-alert v-if="!entregas.length" type="info">Nenhuma entrega pendente.</v-alert>
+            <v-list v-else>
+              <v-list-item v-for="entrega in entregas" :key="entrega.id" @click="mostrarDetalhesEntrega(entrega)">
+                <v-list-item-icon><v-icon>mdi-truck</v-icon></v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>Entrega #{{ entrega.id }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ entrega.pedido.cliente_nome }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </template>
+          <template v-if="tela_atual === 'configuracoes'">
+            <h2>Configurações</h2>
+            <p>Aqui você pode alterar suas preferências e dados do sistema.</p>
+            <v-card>
+              <v-card-title>Alterar Senha</v-card-title>
+              <v-card-text>
+                <v-text-field label="Senha Atual" type="password"></v-text-field>
+                <v-text-field label="Nova Senha" type="password"></v-text-field>
+                <v-btn color="primary">Salvar</v-btn>
+              </v-card-text>
+            </v-card>
+          </template>
+
+          <v-dialog v-model="modalVisivel" max-width="500px">
+            <v-card>
+              <v-card-title class="headline">
+                Detalhes da Entrega
+              </v-card-title>
+              <v-card-text>
+                <div>
+                  <strong>Cliente:</strong> {{ entregaAtual?.client?.name || 'N/A' }}
+                </div>
+                <div>
+                  <strong>Endereço:</strong> {{ entregaAtual?.client?.endereco || 'N/A' }}
+                </div>
+                <div>
+                  <strong>Contato:</strong> {{ entregaAtual?.client?.telefone || 'N/A' }}
+                </div>
+                <div>
+                  <strong>Produto:</strong> {{ entregaAtual?.products[0]?.title || 'N/A' }}
+                </div>
+                <div>
+                  <strong>Preço:</strong> R$ {{ entregaAtual?.products?.[0]?.price ? entregaAtual.products[0].price.toFixed(2) : '0.00' }}
+                </div>
+                <div>
+                  <strong>Descrição:</strong> {{ entregaAtual?.products[0]?.description || 'N/A' }}
+                </div>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn color="success" @click="aceitarEntrega">Aceitar</v-btn>
+                <v-btn color="error" @click="recusarEntrega">Recusar</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+
+  <script>
+     const userId = localStorage.getItem('user_id');
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: () => ({
+        erro:[],
+        email:"",
+        mensagens: [
+        { id: 1, enviadoPor: 'entregador', texto: 'Olá, estou a caminho da loja.' },
+        { id: 2, enviadoPor: 'cliente', texto: 'Ótimo, obrigado!' }
+      ],
+      novaMensagem: '',
+      statusPedido: 'aceito', // Status do pedido: aceito, coletado, entregue
+      pedidoColetado: false   // Variável para controlar a coleta do pedido
+    ,
+    confirmarColeta :false,
+      novaMensagem: '',
+      form: {
+        nome: '',
+        endereco: '',
+        email: '',
+        telefone:"",
+      },
+        entregas :[],
+        modalVisivel: false,
+        modalEditar :false,
+        entregaAtual: null, // Dados da entrega exibida no modal
+        socket: null, // Instância do Socket.IO
+        drawer: false,
+        usuario: {}, // Dados do usuário logado
+        filtros: {
+          dataInicio: new Date().toISOString().split('T')[0], // Data atual no formato YYYY-MM-DD
+          dataFim: new Date().toISOString().split('T')[0],
+        },
+        headers: [
+        { text: "ID", value: "id" },
+        { text: "Status", value: "status" },
+        { text: "Data de Entrega", value: "data_entrega" },
+        { text: "Pedido Detalhes", value: "pedido" },
+      ],
+        indicadores: {
+          entregasDoDia: 0,
+          cancelamentos: 0,
+          ganhos: 0,
+        },
+        tela_atual: 'dashboard', // Estado inicial da tela
+      }),
+      mounted() {
+        this.checkAuthentication()
+        this.carregarUsuario()
+        this.carregarIndicadores()
+        this.carregarEntregas()
+        setTimeout(() => {
+                   this.connectSocket();
+                    
+                }, 2000);
+        
+        },
+        beforeDestroy() {
+        // Desconecta o Socket.IO ao destruir o componente
+        if (this.socket) {
+          this.socket.disconnect();
+        }
+         if (!this.isAuthenticated) {
+              window.location.href = 'login.html'; // Você pode substituir '/login' pela URL real da sua tela de login
+        }
+        
+       
+      },
+      computed: {
+        isAuthenticated() {
+          return !!localStorage.getItem('token');
+        },
+      },
+      methods: {
+        confirmarColeta() {
+      this.pedidoColetado = true;
+      this.statusPedido = 'coletado';
+      this.mensagens.push({
+        id: this.mensagens.length + 1,
+        enviadoPor: 'entregador',
+        texto: 'Estou com o pedido e a caminho da entrega.'
+      });
+    },
+        enviarMensagem() {
+          if (this.novaMensagem.trim() !== '') {
+            this.mensagens.push({
+              id: this.mensagens.length + 1,
+              texto: this.novaMensagem,
+              enviadoPor: 'cliente', // Define quem enviou
+            });
+            this.novaMensagem = '';
+          }
+    },
+    checkAuthentication() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+      }
+    },
+    connectSocket() {
+      this.socket = io('http://www.acessomu.com.br:3000');
+      this.socket.on('connect', () => {
+        console.log('Conectado ao servidor Socket.IO.');
+      });
+
+
+
+      this.socket.on('enviarpedidoentregadores', (data) => {
+        console.log('pedido para entregador:', data);
+        this.mostrarDetalhesEntrega(data);
+     });
+     
+   
+
+
+
+                    this.socket.on('disconnect', () => {
+                        console.log('Desconectado do servidor Socket.IO.');
+                    });
+                },
+        mostrarDetalhesEntrega(entrega) {  
+              
+        this.entregaAtual = entrega;
+        this.modalVisivel = true;
+  },
+  abrirModalEditar() {
+     this.modalEditar = true;
+    },
+
+    confirmarEntrega() {
+    console.log('🔍 Confirmando entrega para o pedido:', this.entregaAtual?.identify);
+
+    // Verifica se a entregaAtual existe antes de prosseguir
+    if (!this.entregaAtual || !this.entregaAtual.identify) {
+        console.error('🚨 Erro: Nenhuma entrega válida selecionada.');
+        return;
+    }
+
+    const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega';
+
+    const payload = {
+        pedido_id: this.entregaAtual.identify, // ID do pedido
+        status: 'entregue'
+    };
+
+    axios.post(url, payload)
+        .then((response) => {
+            console.log('✅ Entrega confirmada com sucesso:', response.data);
+
+            // Enviar notificação para o cliente
+            this.enviarNotificacaoEntregaConfirmada(this.entregaAtual.client.email);
+
+            // Atualizar a interface para voltar à tela inicial ou lista de entregas
+            this.tela_atual = 'home'; 
+        })
+        .catch((error) => {
+            console.error('🚨 Erro ao confirmar entrega:', error);
+        });
+},
+
+enviarNotificacaoEntregaConfirmada(emailCliente) {
+    console.log('📩 Enviando notificação de entrega confirmada...');
+    const url = 'https://admindelivery.comunidadeppg.com.br/api/enviarnotificacao';
+
+    const payload = {
+        email: emailCliente,
+        mensagem: "Seu pedido foi entregue com sucesso! Obrigado por escolher nosso serviço.",
+    };
+
+    axios.post(url, payload)
+        .then((response) => {
+            console.log('✅ Notificação de entrega confirmada enviada:', response.data);
+        })
+        .catch((error) => {
+            console.error('🚨 Erro ao enviar notificação de entrega confirmada:', error);
+        });
+},
+cancelarEntrega()
+{
+  console.log('Entrega Cancelada');
+},
+    aceitarEntrega() {
+    console.log('🔍 Debug: entregaAtual antes da mudança de tela', this.entregaAtual);
+
+    // Verifica se a entregaAtual e os produtos estão definidos
+    if (!this.entregaAtual || !this.entregaAtual.products || this.entregaAtual.products.length === 0) {
+        console.error('🚨 Erro: entregaAtual ou products estão indefinidos ou vazios.');
+        return;
+    }
+
+    this.tela_atual = 'detalhes_pedido';
+    this.modalVisivel = false;
+
+    // Enviar notificação de que o pedido está a caminho
+    const emailCliente = this.entregaAtual.client.email;
+    this.enviarNotificacaoProdutoACaminho(emailCliente);
+},
+
+enviarNotificacaoProdutoACaminho(emailCliente) {
+    console.log('Enviando notificação de pedido a caminho...');
+    const url = 'https://admindelivery.comunidadeppg.com.br/api/enviarnotificacao';
+    
+    const payload = {
+        email: emailCliente,
+        mensagem: "Seu pedido já está a caminho!",
+    };
+
+    axios.post(url, payload)
+        .then((response) => {
+            console.log('Notificação enviada com sucesso:', response.data);
+        })
+        .catch((error) => {
+            console.error('Erro ao enviar notificação:', error);
+        });
+},
+
+  inserirEntregas()
+  {
+    const payload = {
+      usuario_id: localStorage.getItem('user_id'),
+      pedido_id: this.entregaAtual.id, 
+      status: "pendente",
+      data_entrega: new Date().toISOString().replace('T', ' ').split('.')[0], // Data e hora atual formatada
+    };
+    fetch('https://admindelivery.comunidadeppg.com.br/api/entregas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // Se precisar de autenticação
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erro ao aceitar entrega');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Entrega aceita com sucesso:', data);
+        this.modalVisivel = false
+        alert('Entrega aceita com sucesso!');
+      })
+      .catch(error => {
+        console.error('Erro ao aceitar entrega:', error);
+        alert('Erro ao aceitar entrega.');
+      });
+  
+  },
+    atualizarUsuario() {
+          fetch(`https://admindelivery.comunidadeppg.com.br/api/usuarios/`+localStorage.getItem('user_id'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(this.form),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Erro ao atualizar usuário.');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          this.usuario = data; // Atualiza os dados do usuário localmente
+          this.modalEditar = false; // Fecha o modal
+        })
+        .catch((error) => {
+          console.error('Erro ao atualizar usuário:', error);
+          alert('Falha ao atualizar o usuário. Tente novamente.');
+        });
+    },
+      recusarEntrega() {
+        // Lógica para recusar a entrega
+        console.log("Entrega recusada:", this.entregaAtual);
+        this.modalVisivel = false;
+        // Enviar solicitação para a API (se necessário)
+        fetch(`https://admindelivery.comunidadeppg.com.br/api/entregas/${this.entregaAtual.id}/recusar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error("Erro ao recusar entrega");
+          }
+          return response.json();
+        }).then(data => {
+          console.log("Entrega recusada com sucesso:", data);
+        }).catch(error => {
+          console.error("Erro:", error);
+        });
+      },
+        logout() {
+          localStorage.removeItem('token');
+          this.$router.push('/login');
+        },
+        carregarEntregas() {
+          fetch('https://admindelivery.comunidadeppg.com.br/api/entregas/'+userId, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`, // Insere o token de autenticação
+              'Content-Type': 'application/json',
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log('Entregas do usuário:', data); // Exibe as entregas no console
+              this.entregas = data; // Atualiza a lista de entregas no estado
+            })
+            .catch((error) => {
+              console.error('Erro ao carregar entregas:', error);
+              this.entregas = []; // Limpa a lista em caso de erro
+            });
+        },
+        formatarData(data) {
+          if (!data) return "Data inválida";
+          const options = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          };
+          return new Date(data).toLocaleString("pt-BR", options);
+        },
+        carregarUsuario() {
+        console.log("Chamando carregarUsuario...");
+        const userId = localStorage.getItem('user_id');
+        console.log("user_id:", userId);
+
+        fetch('https://admindelivery.comunidadeppg.com.br/api/usuarios/' + userId)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Dados do usuário:", data);
+            this.usuario = data;
+            this.form = { ...data };
+          })
+          .catch((error) => {
+            console.error('Erro ao carregar usuário:', error);
+          });
+      },
+        carregarIndicadores() {
+        const params = new URLSearchParams(this.filtros).toString();
+        fetch(`https://admindelivery.comunidadeppg.com.br/api/indicadores/dashboard?${params}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Erro na API: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Indicadores carregados:', data);
+            this.indicadores.entregasDoDia = data.entregas_do_dia;
+            this.indicadores.cancelamentos = data.cancelamentos;
+            this.indicadores.ganhos = parseFloat(data.ganhos || 0).toFixed(2);
+          })
+          .catch((err) => {
+            console.error('Erro ao carregar indicadores:', err);
+            this.indicadores = { entregasDoDia: 0, cancelamentos: 0, ganhos: 0 };
+          });
+      },
+
+      },
+    });
+  </script>
+
+<style scoped>
+  .chat-box {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  .mensagem {
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+  }
+  .cliente {
+    background-color: #e1f5fe;
+    text-align: right;
+  }
+  .entregador {
+    background-color: #fce4ec;
+    text-align: left;
+  }
+  .campo-mensagem {
+    flex: 1;
+    margin-right: 8px;
+  }
+  </style>
+</body>
+</html>

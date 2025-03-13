@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Entregadores</title>
+  <!-- Vuetify e Ícones -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@3.6.5/dist/vue-router.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-main>
+        <template v-if="tela_atual === 'login'">
+          <v-container class="fill-height" fluid>
+            <v-row align="center" justify="center" class="ma-5">
+              <v-col cols="12" sm="6" md="4">
+                <v-card>
+                  <v-card-title>
+                    <span class="headline">Login</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-form>
+                      <v-text-field v-model="email" label="Email" type="email" outlined></v-text-field>
+                      <v-text-field v-model="password" label="Senha" type="password" outlined></v-text-field>
+                      <v-btn color="primary" block @click="login">Entrar</v-btn>
+                      <v-btn text block @click="tela_atual = 'register'">Não tem uma conta? Cadastre-se</v-btn>
+                    </v-form>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-container>
+        </template>
+
+        <template v-if="tela_atual === 'register'">
+          <v-container class="fill-height" fluid>
+            <v-row align="center" justify="center">
+              <v-col cols="12" sm="8" md="4">
+                <v-card>
+                  <v-card-title>
+                    <span class="headline">Registro</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-form>
+                      <v-text-field v-model="name" label="Nome" type="text" outlined></v-text-field>
+                      <v-text-field v-model="email" label="Email" type="email" outlined></v-text-field>
+                      <v-text-field v-model="password" label="Senha" type="password" outlined></v-text-field>
+                      <v-text-field v-model="password_confirmation" label="Confirme a Senha" type="password" outlined></v-text-field>
+                      <v-btn color="primary" block @click="register">Cadastrar</v-btn>
+                      <v-btn text block @click="tela_atual = 'login'">Já tem uma conta? Login</v-btn>
+                    </v-form>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-container>
+        </template>
+
+        <template v-if="tela_atual === 'home'">
+          <v-container>
+            <h1>Bem-vindo ao Sistema de Entregas!</h1>
+            <v-btn color="error" @click="logout">Sair</v-btn>
+          </v-container>
+        </template>
+      </v-main>
+    </v-app>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        tela_atual: 'login', // Define a tela inicial
+        email: 'joao1@gmail.com',
+        password: '123456',
+        name: '',
+        password_confirmation: '',
+        token: null,
+      },
+      methods: {
+        login() {
+          const payload = {
+            email: this.email,
+            password: this.password,
+          };
+
+          fetch('http://127.0.0.1:8000/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Erro ao fazer login.');
+              }
+              return response.json();
+            })
+            .then((data) => {
+              this.token = data.access_token;
+              
+              localStorage.setItem('user_id', data.id);
+              localStorage.setItem('token', this.token);
+              window.location.href = 'index.html'; // Redireciona para a tela inicial
+            })
+            .catch((error) => {
+              alert('Falha no login: Verifique suas credenciais.');
+              console.error(error);
+            });
+        },
+        register() {
+          const payload = {
+            name: this.name,
+            email: this.email,
+            password: this.password,
+            password_confirmation: this.password_confirmation,
+          };
+
+          fetch('http://127.0.0.1:8000/api/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Erro ao registrar.');
+              }
+              return response.json();
+            })
+            .then(() => {
+              alert('Usuário cadastrado com sucesso!');
+              this.tela_atual = 'login';
+            })
+            .catch((error) => {
+              alert('Erro no registro: Verifique os dados.');
+              console.error(error);
+            });
+        },
+        logout() {
+          this.token = null;
+          localStorage.removeItem('token');
+          this.tela_atual = 'login'; // Redireciona para a tela de login
+        },
+      },
+    });
+  </script>
+</body>
+</html>
