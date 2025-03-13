@@ -477,7 +477,7 @@
       }
     },
     connectSocket() {
-      this.socket = io('https://www.comunidadeppg.com.br:3000');
+      this.socket = io('http://www.comunidadeppg.com.br:3000');
       this.socket.on('connect', () => {
         console.log('Conectado ao servidor Socket.IO.');
       });
