@@ -731,7 +731,7 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
       },
         logout() {
           localStorage.removeItem('token');
-          this.$router.push('/login');
+          window.location.href = 'login.html';
         },
         carregarEntregas() {
           fetch('https://admindelivery.comunidadeppg.com.br/api/entregas/'+userId, {
