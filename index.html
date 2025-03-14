@@ -487,6 +487,7 @@
       this.socket.on('enviarpedidoentregadores', (data) => {
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
+        this.reproduzirSomNotificacao()
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
       this.enviarNotificacaoPush(data);
@@ -510,6 +511,16 @@
   
   
 },
+reproduzirSomNotificacao() {
+    const audio = new Audio('notificacao.mp3');
+    audio.play()
+      .then(() => {
+        console.log('🔊 Som reproduzido com sucesso.');
+      })
+      .catch((error) => {
+        console.error('Erro ao reproduzir o som:', error);
+      });
+  },
 enviarNotificacaoPush(entrega) {
   const titulo = `🚚 Novo pedido recebido!`;
   const corpo = `Cliente: ${entrega.client.name}\nProduto: ${entrega.products[0]?.title || 'Não informado'}`;
