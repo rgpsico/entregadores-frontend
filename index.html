@@ -504,17 +504,17 @@
         this.mostrarDetalhesEntrega(data);
        // this.ativarAudio()
         //this.reproduzirSomNotificacao()
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      this.enviarNotificacaoPush(data);
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission((permission) => {
-        if (permission === 'granted') {
-          this.enviarNotificacaoPush(data);
-        }
-      });
-    }
-  }
+  // if ('Notification' in window) {
+  //   if (Notification.permission === 'granted') {
+  //     //this.enviarNotificacaoPush(data);
+  //   } else if (Notification.permission !== 'denied') {
+  //     Notification.requestPermission((permission) => {
+  //       if (permission === 'granted') {
+  //       //  this.enviarNotificacaoPush(data);
+  //       }
+  //     });
+  //   }
+  // }
      });
 
    
@@ -786,7 +786,7 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
       },
         carregarIndicadores() {
         const params = new URLSearchParams(this.filtros).toString();
-        
+
         fetch(`https://admindelivery.comunidadeppg.com.br/api/indicadores?${params}&user_id=`+userId, {
           method: 'GET',
           headers: {
