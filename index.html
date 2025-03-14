@@ -786,6 +786,7 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
       },
         carregarIndicadores() {
         const params = new URLSearchParams(this.filtros).toString();
+        
         fetch(`https://admindelivery.comunidadeppg.com.br/api/indicadores?${params}&user_id=`+userId, {
           method: 'GET',
           headers: {
