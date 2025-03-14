@@ -487,6 +487,17 @@
       this.socket.on('enviarpedidoentregadores', (data) => {
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
+  if ('Notification' in window) {
+    if (Notification.permission === 'granted') {
+      this.enviarNotificacaoPush(data);
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission((permission) => {
+        if (permission === 'granted') {
+          this.enviarNotificacaoPush(data);
+        }
+      });
+    }
+  }
      });
 
    
@@ -496,18 +507,8 @@
                     this.socket.on('disconnect', () => {
                         console.log('Desconectado do servidor Socket.IO.');
                     });
-    // ✅ Aqui começa o código da notificação
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      this.enviarNotificacaoPush(entrega);
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission((permission) => {
-        if (permission === 'granted') {
-          this.enviarNotificacaoPush(entrega);
-        }
-      });
-    }
-  }
+  
+  
 },
 enviarNotificacaoPush(entrega) {
   const titulo = `🚚 Novo pedido recebido!`;
@@ -515,19 +516,16 @@ enviarNotificacaoPush(entrega) {
 
   new Notification(titulo, {
     body: corpo,
-    icon: '/icone_notificacao.png', // Opcional, substitua pelo seu ícone personalizado
+    icon: '/icone_notificacao.png', 
   });
 },
-    
-                mostrarDetalhesEntrega(entrega) {  
-              
+mostrarDetalhesEntrega(entrega) {              
         this.entregaAtual = entrega;
         this.modalVisivel = true;
   },
   abrirModalEditar() {
      this.modalEditar = true;
     },
-
     confirmarEntrega() {
     console.log('🔍 Confirmando entrega para o pedido:', this.entregaAtual?.identify);
 
