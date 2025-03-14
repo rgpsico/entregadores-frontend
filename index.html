@@ -784,34 +784,42 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
             console.error('Erro ao carregar usuário:', error);
           });
       },
-        carregarIndicadores() {
-        const params = new URLSearchParams(this.filtros).toString();
-        fetch(`https://admindelivery.comunidadeppg.com.br/api/indicadores/dashboard?${params}`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Erro na API: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log('Indicadores carregados:', data);
-            this.indicadores.entregasDoDia = data.entregas_do_dia;
-            this.indicadores.cancelamentos = data.cancelamentos;
-            this.indicadores.ganhos = parseFloat(data.ganhos || 0).toFixed(2);
-          })
-          .catch((err) => {
-            console.error('Erro ao carregar indicadores:', err);
-            this.indicadores = { entregasDoDia: 0, cancelamentos: 0, ganhos: 0 };
-          });
-      },
+      carregarIndicadores() {
+  const token = localStorage.getItem('token');
 
-      },
+  if (!token) {
+    alert('Sessão expirada. Faça login novamente.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const params = new URLSearchParams(this.filtros).toString();
+  fetch(`https://admindelivery.comunidadeppg.com.br/api/indicadores?${params}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`Erro na API: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    console.log('Indicadores carregados:', data);
+    this.indicadores.entregasDoDia = data.entregas_do_dia || 0;
+    this.indicadores.cancelamentos = data.cancelamentos || 0;
+    this.indicadores.ganhos = data.ganhos ? parseFloat(data.ganhos).toFixed(2) : '0.00';
+  })
+  .catch((err) => {
+    console.error('Erro ao carregar indicadores:', err);
+    this.indicadores = { entregasDoDia: 0, cancelamentos: 0, ganhos: '0.00' };
+  });
+    },
+      }
     });
   </script>
 
