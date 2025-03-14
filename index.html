@@ -487,6 +487,7 @@
       this.socket.on('enviarpedidoentregadores', (data) => {
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
+        this.ativarAudio()
         this.reproduzirSomNotificacao()
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
@@ -511,8 +512,18 @@
   
   
 },
+ativarAudio() {
+    this.audioNotificacao = new Audio('/audio/notificacao.mp3');
+    this.audioNotificacao.play().then(() => {
+      this.audioAtivado = true;
+      console.log('🔊 Áudio ativado com sucesso!');
+    }).catch((e) => {
+      console.error('Erro ao ativar áudio:', e);
+    });
+  },
 reproduzirSomNotificacao() {
-    const audio = new Audio('notificacao.mp3');
+  const audio = new Audio('/audio/notificacao.mp3');
+
     audio.play()
       .then(() => {
         console.log('🔊 Som reproduzido com sucesso.');
