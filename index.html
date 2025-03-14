@@ -255,8 +255,17 @@
                         <div v-else>
                             <strong>Produto:</strong> Nenhum produto disponível.
                         </div>
+
+                        <v-text-field
+                        v-model="codigoCliente"
+                        label="Código do Cliente"
+                        outlined
+                        dense
+                        placeholder="Insira o código recebido do cliente"
+                      />
                     </v-card-text>
                     <v-card-actions>
+                   
                         <v-btn color="success" @click="confirmarEntrega">Confirmar Entrega</v-btn>
                         <v-btn color="error" @click="cancelarEntrega">Cancelar</v-btn>
                     </v-card-actions>
@@ -362,6 +371,9 @@
                 <div>
                   <strong>Descrição:</strong> {{ entregaAtual?.products[0]?.description || 'N/A' }}
                 </div>
+
+              
+            </v-card-text>
               </v-card-text>
               <v-card-actions>
                 <v-btn color="success" @click="aceitarEntrega">Aceitar</v-btn>
@@ -381,6 +393,7 @@
       el: '#app',
       vuetify: new Vuetify(),
       data: () => ({
+        codigoCliente:'',
         erro:[],
         email:"",
         mensagens: [
@@ -487,8 +500,8 @@
       this.socket.on('enviarpedidoentregadores', (data) => {
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
-        this.ativarAudio()
-        this.reproduzirSomNotificacao()
+       // this.ativarAudio()
+        //this.reproduzirSomNotificacao()
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
       this.enviarNotificacaoPush(data);
