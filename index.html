@@ -502,6 +502,7 @@
       this.socket.on('enviarpedidoentregadores', (data) => {
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
+        
        // this.ativarAudio()
         //this.reproduzirSomNotificacao()
   // if ('Notification' in window) {
@@ -557,7 +558,7 @@ enviarNotificacaoPush(entrega) {
   });
 },
 mostrarDetalhesEntrega(entrega) {   
-  this.enviarNotificacaoPush(entrega);           
+ // this.enviarNotificacaoPush(entrega);           
         this.entregaAtual = entrega;
         this.modalVisivel = true;
   },
