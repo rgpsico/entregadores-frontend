@@ -488,7 +488,7 @@
         console.log('pedido para entregador:', data);
         this.mostrarDetalhesEntrega(data);
      });
-     
+
    
 
 
@@ -496,8 +496,30 @@
                     this.socket.on('disconnect', () => {
                         console.log('Desconectado do servidor Socket.IO.');
                     });
-                },
-        mostrarDetalhesEntrega(entrega) {  
+    // ✅ Aqui começa o código da notificação
+  if ('Notification' in window) {
+    if (Notification.permission === 'granted') {
+      this.enviarNotificacaoPush(entrega);
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission((permission) => {
+        if (permission === 'granted') {
+          this.enviarNotificacaoPush(entrega);
+        }
+      });
+    }
+  }
+},
+enviarNotificacaoPush(entrega) {
+  const titulo = `🚚 Novo pedido recebido!`;
+  const corpo = `Cliente: ${entrega.client.name}\nProduto: ${entrega.products[0]?.title || 'Não informado'}`;
+
+  new Notification(titulo, {
+    body: corpo,
+    icon: '/icone_notificacao.png', // Opcional, substitua pelo seu ícone personalizado
+  });
+},
+    
+                mostrarDetalhesEntrega(entrega) {  
               
         this.entregaAtual = entrega;
         this.modalVisivel = true;
