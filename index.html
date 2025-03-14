@@ -786,9 +786,10 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
       },
       carregarIndicadores() {
   const token = localStorage.getItem('token');
-
+        alert(token)
   if (!token) {
-    window.location.href = 'login.html';
+    
+    //window.location.href = 'login.html';
     return;
   }
 
