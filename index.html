@@ -519,7 +519,8 @@ enviarNotificacaoPush(entrega) {
     icon: '/img/favicon.png', 
   });
 },
-mostrarDetalhesEntrega(entrega) {              
+mostrarDetalhesEntrega(entrega) {   
+  this.enviarNotificacaoPush(entrega);           
         this.entregaAtual = entrega;
         this.modalVisivel = true;
   },
