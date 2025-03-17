@@ -505,7 +505,7 @@
         
         this.ativarAudio()
         this.reproduzirSomNotificacao()
-        this. inserirEntregas()
+    
   // if ('Notification' in window) {
   //   if (Notification.permission === 'granted') {
   //     //this.enviarNotificacaoPush(data);
@@ -533,7 +533,7 @@ ativarAudio() {
     this.audioNotificacao = new Audio('/audio/notificacao.mp3');
     this.audioNotificacao.play().then(() => {
       this.audioAtivado = true;
-      console.log('🔊 Áudio ativado com sucesso!');
+     
     }).catch((e) => {
       console.error('Erro ao ativar áudio:', e);
     });
@@ -567,31 +567,44 @@ mostrarDetalhesEntrega(entrega) {
      this.modalEditar = true;
     },
     confirmarEntrega() {
-    console.log('🔍 Confirmando entrega para o pedido:', this.entregaAtual?.identify);
 
-    // Verifica se a entregaAtual existe antes de prosseguir
-    if (!this.entregaAtual || !this.entregaAtual.identify) {
-        console.error('🚨 Erro: Nenhuma entrega válida selecionada.');
-        return;
-    }
+if (!this.entregaAtual || !this.entregaAtual.identify) {
+    alert('🚨 Nenhuma entrega válida selecionada.');
+    return;
+}
 
-    const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega/'+ this.entregaAtual.identify;
+if(this.codigoCliente === '') {
+    alert('⚠️ Por favor, informe o código do cliente.');
+    return;
+}
 
-    
+const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega/' + this.codigoCliente;
 
-    axios.put(url)
-        .then((response) => {
-            console.log('✅ Entrega confirmada com sucesso:', response.data);
+const payload = {
+    entregador_id: this.userId,
+    status: 'done'
+};
 
-            // Enviar notificação para o cliente
-            this.enviarNotificacaoEntregaConfirmada(this.entregaAtual.client.email);
+axios.post(url, payload)
+    .then((response) => {
+        alert('✅ Muito obrigado pela entrega!');
+        this.tela_atual = 'dashboard';
+    })
+    .catch((error) => {
+        if (error.response) {
+            if (error.response.status === 404) {
+                alert('⚠️ Pedido não encontrado. Por favor, verifique o código informado.');
+            } else if (error.response.status === 422) {
+                alert('⚠️ Dados inválidos. Verifique as informações enviadas.');
+            } else {
+                alert('⚠️ Ocorreu um erro inesperado (' + error.response.status + ').');
+            }
+        } else {
+            alert('⚠️ Falha na conexão com o servidor.');
+        }
 
-            // Atualizar a interface para voltar à tela inicial ou lista de entregas
-            this.tela_atual = 'home'; 
-        })
-        .catch((error) => {
-            console.error('🚨 Erro ao confirmar entrega:', error);
-        });
+        console.error('🚨 Erro ao confirmar entrega:', error);
+    });
 },
 
 enviarNotificacaoEntregaConfirmada(emailCliente) {
@@ -616,8 +629,13 @@ cancelarEntrega()
   console.log('Entrega Cancelada');
 },
     aceitarEntrega() {
+      // Exemplo simples (base64):
+this.codigoCriptografado = btoa(this.entregaAtual.codigo_entrega);
+
     console.log('🔍 Debug: entregaAtual antes da mudança de tela', this.entregaAtual);
 
+
+ 
     // Verifica se a entregaAtual e os produtos estão definidos
     if (!this.entregaAtual || !this.entregaAtual.products || this.entregaAtual.products.length === 0) {
         console.error('🚨 Erro: entregaAtual ou products estão indefinidos ou vazios.');
@@ -629,7 +647,8 @@ cancelarEntrega()
 
     // Enviar notificação de que o pedido está a caminho
     const emailCliente = this.entregaAtual.client.email;
-    this.enviarNotificacaoProdutoACaminho(emailCliente);
+    this.inserirEntregas()
+    //this.enviarNotificacaoProdutoACaminho(emailCliente);
 },
 
 enviarNotificacaoProdutoACaminho(emailCliente) {
@@ -658,11 +677,12 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
       status: "pendente",
       data_entrega: new Date().toISOString().replace('T', ' ').split('.')[0], // Data e hora atual formatada
     };
+
+    
     fetch('https://admindelivery.comunidadeppg.com.br/api/entregas', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Se precisar de autenticação
+        'Content-Type': 'application/json'     
       },
       body: JSON.stringify(payload)
     })
@@ -747,7 +767,7 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
               return response.json();
             })
             .then((data) => {
-              console.log('Entregas do usuário:', data); // Exibe as entregas no console
+              //console.log('Entregas do usuário:', data); // Exibe as entregas no console
               this.entregas = data; // Atualiza a lista de entregas no estado
             })
             .catch((error) => {
@@ -768,14 +788,14 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
           return new Date(data).toLocaleString("pt-BR", options);
         },
         carregarUsuario() {
-        console.log("Chamando carregarUsuario...");
+       // console.log("Chamando carregarUsuario...");
         const userId = localStorage.getItem('user_id');
-        console.log("user_id:", userId);
+        // console.log("user_id:", userId);
 
         fetch('https://admindelivery.comunidadeppg.com.br/api/usuarios/' + userId)
           .then((response) => response.json())
           .then((data) => {
-            console.log("Dados do usuário:", data);
+           // console.log("Dados do usuário:", data);
             this.usuario = data;
             this.form = { ...data };
           })
@@ -800,7 +820,7 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
             return response.json();
           })
           .then((data) => {
-            console.log('Indicadores carregados:', data);
+          // console.log('Indicadores carregados:', data);
             this.indicadores.entregasDoDia = data.entregas_do_dia;
             this.indicadores.cancelamentos = data.cancelamentos;
             this.indicadores.ganhos = parseFloat(data.ganhos || 0).toFixed(2);
