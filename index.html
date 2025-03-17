@@ -395,6 +395,7 @@
       el: '#app',
       vuetify: new Vuetify(),
       data: () => ({
+        pedidoId:"",
         codigoCliente:'',
         erro:[],
         email:"",
@@ -506,17 +507,6 @@
         this.ativarAudio()
         this.reproduzirSomNotificacao()
     
-  // if ('Notification' in window) {
-  //   if (Notification.permission === 'granted') {
-  //     //this.enviarNotificacaoPush(data);
-  //   } else if (Notification.permission !== 'denied') {
-  //     Notification.requestPermission((permission) => {
-  //       if (permission === 'granted') {
-  //       //  this.enviarNotificacaoPush(data);
-  //       }
-  //     });
-  //   }
-  // }
      });
 
    
@@ -566,27 +556,28 @@ mostrarDetalhesEntrega(entrega) {
   abrirModalEditar() {
      this.modalEditar = true;
     },
-    confirmarEntrega() {
+  confirmarEntrega() {
 
-if (!this.entregaAtual || !this.entregaAtual.identify) {
-    alert('🚨 Nenhuma entrega válida selecionada.');
-    return;
-}
+    if (!this.entregaAtual || !this.entregaAtual.identify) {
+        alert('🚨 Nenhuma entrega válida selecionada.');
+        return;
+    }
 
-if(this.codigoCliente === '') {
-    alert('⚠️ Por favor, informe o código do cliente.');
-    return;
-}
+    if(this.codigoCliente === '') {
+        alert('⚠️ Por favor, informe o código do cliente.');
+        return;
+    }
 
-const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega/' + this.codigoCliente;
+    const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega/' + this.codigoCliente;
 
-const payload = {
-    entregador_id: this.userId,
-    status: 'done'
-};
+    const payload = {
+        entregador_id: this.userId,
+        status: 'done'
+    };
 
 axios.post(url, payload)
     .then((response) => {
+      this.inserirEntrega(this.pedidoId) 
         alert('✅ Muito obrigado pela entrega!');
         this.tela_atual = 'dashboard';
     })
@@ -628,27 +619,48 @@ cancelarEntrega()
 {
   console.log('Entrega Cancelada');
 },
-    aceitarEntrega() {
-      // Exemplo simples (base64):
-this.codigoCriptografado = btoa(this.entregaAtual.codigo_entrega);
-
-    console.log('🔍 Debug: entregaAtual antes da mudança de tela', this.entregaAtual);
-
-
- 
-    // Verifica se a entregaAtual e os produtos estão definidos
+async aceitarEntrega() {
+    // Garante que a entrega e os produtos existem
     if (!this.entregaAtual || !this.entregaAtual.products || this.entregaAtual.products.length === 0) {
         console.error('🚨 Erro: entregaAtual ou products estão indefinidos ou vazios.');
         return;
     }
 
-    this.tela_atual = 'detalhes_pedido';
-    this.modalVisivel = false;
+    // Criptografa o código da entrega (caso seja necessário)
+    this.codigoCriptografado = btoa(this.entregaAtual.codigo_entrega);
+    console.log('🔍 Debug: entregaAtual antes da mudança de tela', this.entregaAtual);
 
-    // Enviar notificação de que o pedido está a caminho
-    const emailCliente = this.entregaAtual.client.email;
-    this.inserirEntregas(this.entregaAtual)
-    //this.enviarNotificacaoProdutoACaminho(emailCliente);
+    // Insere o pedido no banco
+    const pedidoPayload = {
+        cliente_nome: this.entregaAtual.client.name,
+        endereco_entrega: this.entregaAtual.client.endereco,
+        valor: this.entregaAtual.total,
+        detalhes: JSON.stringify(this.entregaAtual.products), // Armazena os produtos
+        status: "pendente",
+        created_at: new Date().toISOString().replace('T', ' ').split('.')[0]
+    };
+
+    try {
+        const response = await axios.post(
+            'https://admindelivery.comunidadeppg.com.br/api/pedidos',
+            pedidoPayload
+        );
+
+        if (response.status === 201) {
+            console.log('✅ Pedido registrado com sucesso:', response.data);
+            alert('✅ Pedido aceito!');
+            console.log(response.data.pedido.id)
+            this.pedidoId = response.data.pedido.id
+            // Atualiza a tela
+            this.tela_atual = 'detalhes_pedido';
+            this.modalVisivel = false;
+        } else {
+            alert('❌ Erro ao aceitar o pedido.');
+        }
+    } catch (error) {
+        console.error('🚨 Erro ao aceitar o pedido:', error);
+        alert('⚠️ Erro ao aceitar o pedido. Verifique sua conexão.');
+    }
 },
 
 enviarNotificacaoProdutoACaminho(emailCliente) {
@@ -668,42 +680,71 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
             console.error('Erro ao enviar notificação:', error);
         });
 },
-
-  inserirEntregas(entregaAtual)
-  {
+inserirPedido(clienteNome, enderecoEntrega, valor, detalhes) {
     const payload = {
-      usuario_id: localStorage.getItem('user_id'),
-      pedido_id: entregaAtual.id, 
-      status: "pendente",
-      data_entrega: new Date().toISOString().replace('T', ' ').split('.')[0], // Data e hora atual formatada
+        cliente_nome: clienteNome,
+        endereco_entrega: enderecoEntrega,
+        valor: valor,
+        detalhes: detalhes,
+        status: "pendente",
+        created_at: new Date().toISOString().replace('T', ' ').split('.')[0]
     };
 
-    
-    fetch('https://admindelivery.comunidadeppg.com.br/api/entregas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json, text/plain, */*'     
-      },
-      body: JSON.stringify(payload)
+    fetch('https://admindelivery.comunidadeppg.com.br/api/pedidos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+        },
+        body: JSON.stringify(payload)
     })
-      .then(response => {
+    .then(response => {
         if (!response.ok) {
-          throw new Error('Erro ao aceitar entrega');
+            throw new Error('Erro ao criar pedido');
         }
         return response.json();
-      })
-      .then(data => {
+    })
+    .then(data => {
+        console.log('Pedido criado com sucesso:', data);
+        this.pedidoId = data.pedido.id
+        alert('Pedido criado com sucesso!'+data.pedido.id);
+    })
+    .catch(error => {
+        console.error('Erro ao criar pedido:', error);
+        alert('Erro ao criar pedido.');
+    });
+},
+inserirEntrega() {
+    const payload = {
+        usuario_id: localStorage.getItem('user_id'),
+        pedido_id: this.pedidoId,
+        status: "pendente",
+        data_entrega: new Date().toISOString().replace('T', ' ').split('.')[0]
+    };
+
+    fetch('https://admindelivery.comunidadeppg.com.br/api/entregas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao aceitar entrega');
+        }
+        return response.json();
+    })
+    .then(data => {
         console.log('Entrega aceita com sucesso:', data);
-        this.modalVisivel = false
         alert('Entrega aceita com sucesso!');
-      })
-      .catch(error => {
+    })
+    .catch(error => {
         console.error('Erro ao aceitar entrega:', error);
         alert('Erro ao aceitar entrega.');
-      });
-  
-  },
+    });
+},
     atualizarUsuario() {
           fetch(`https://admindelivery.comunidadeppg.com.br/api/usuarios/`+localStorage.getItem('user_id'), {
         method: 'PUT',
