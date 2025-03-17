@@ -647,7 +647,7 @@ this.codigoCriptografado = btoa(this.entregaAtual.codigo_entrega);
 
     // Enviar notificação de que o pedido está a caminho
     const emailCliente = this.entregaAtual.client.email;
-    this.inserirEntregas()
+    this.inserirEntregas(this.entregaAtual)
     //this.enviarNotificacaoProdutoACaminho(emailCliente);
 },
 
@@ -669,11 +669,11 @@ enviarNotificacaoProdutoACaminho(emailCliente) {
         });
 },
 
-  inserirEntregas()
+  inserirEntregas(entregaAtual)
   {
     const payload = {
       usuario_id: localStorage.getItem('user_id'),
-      pedido_id: this.entregaAtual.id, 
+      pedido_id: entregaAtual.id, 
       status: "pendente",
       data_entrega: new Date().toISOString().replace('T', ' ').split('.')[0], // Data e hora atual formatada
     };
