@@ -505,6 +505,7 @@
         
         this.ativarAudio()
         this.reproduzirSomNotificacao()
+        this. inserirEntregas()
   // if ('Notification' in window) {
   //   if (Notification.permission === 'granted') {
   //     //this.enviarNotificacaoPush(data);
@@ -558,7 +559,7 @@ enviarNotificacaoPush(entrega) {
   });
 },
 mostrarDetalhesEntrega(entrega) {   
- // this.enviarNotificacaoPush(entrega);           
+ // this.enviarNotificacaoPush(entrega);    hmn       
         this.entregaAtual = entrega;
         this.modalVisivel = true;
   },
@@ -574,14 +575,11 @@ mostrarDetalhesEntrega(entrega) {
         return;
     }
 
-    const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega';
+    const url = 'https://admindelivery.comunidadeppg.com.br/api/confirmarentrega/'+ this.entregaAtual.identify;
 
-    const payload = {
-        pedido_id: this.entregaAtual.identify, // ID do pedido
-        status: 'entregue'
-    };
+    
 
-    axios.post(url, payload)
+    axios.put(url, payload)
         .then((response) => {
             console.log('✅ Entrega confirmada com sucesso:', response.data);
 
