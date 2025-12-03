@@ -7,6 +7,7 @@
   <!-- Vuetify e Ícones -->
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.6/dist/vuetify.min.js"></script>
   <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
@@ -16,40 +17,68 @@
 <body>
   <div id="app">
     <v-app>
-      <v-app-bar app color="primary" dark>
+      <v-app-bar app color="primary" dark elevation="4" class="app-bar-modern">
         <v-app-bar-nav-icon v-if="isAuthenticated" @click="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>Bem-vindo, {{ usuario.nome || 'Admin' }}</v-toolbar-title>
+        <v-icon class="mr-2">mdi-truck-fast</v-icon>
+        <v-toolbar-title class="font-weight-bold">Bem-vindo, {{ usuario.nome || 'Admin' }}</v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn v-if="isAuthenticated" color="error" @click="logout">Sair</v-btn>
+        <v-btn v-if="isAuthenticated" color="error" @click="logout" class="logout-btn" rounded>
+          <v-icon left>mdi-logout</v-icon>
+          Sair
+        </v-btn>
       </v-app-bar>
 
-      <v-navigation-drawer v-if="isAuthenticated" v-model="drawer" app>
-        <v-list>
-          <v-list-item>
+      <v-navigation-drawer v-if="isAuthenticated" v-model="drawer" app class="navigation-drawer-modern">
+        <div class="drawer-header pa-4">
+          <v-icon large color="primary">mdi-truck-delivery</v-icon>
+          <h3 class="mt-2 primary--text">Entregadores</h3>
+        </div>
+        <v-divider></v-divider>
+        <v-list nav>
+          <v-list-item
+            @click="tela_atual = 'dashboard'"
+            :class="{'active-menu-item': tela_atual === 'dashboard'}"
+            class="menu-item-hover">
+            <v-list-item-icon><v-icon color="primary">mdi-view-dashboard</v-icon></v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title class="headline">Menu</v-list-item-title>
+              <v-list-item-title class="font-weight-medium">Dashboard</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-divider></v-divider>
-          <v-list-item @click="tela_atual = 'dashboard'">
-            <v-list-item-icon><v-icon>mdi-view-dashboard</v-icon></v-list-item-icon>
-            <v-list-item-content>Dashboard</v-list-item-content>
+          <v-list-item
+            @click="tela_atual = 'perfil'"
+            :class="{'active-menu-item': tela_atual === 'perfil'}"
+            class="menu-item-hover">
+            <v-list-item-icon><v-icon color="primary">mdi-account</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-medium">Perfil</v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
-          <v-list-item @click="tela_atual = 'perfil'">
-            <v-list-item-icon><v-icon>mdi-account</v-icon></v-list-item-icon>
-            <v-list-item-content>Perfil</v-list-item-content>
+          <v-list-item
+            @click="tela_atual = 'historico'"
+            :class="{'active-menu-item': tela_atual === 'historico'}"
+            class="menu-item-hover">
+            <v-list-item-icon><v-icon color="primary">mdi-history</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-medium">Histórico</v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
-          <v-list-item @click="tela_atual = 'historico'">
-            <v-list-item-icon><v-icon>mdi-history</v-icon></v-list-item-icon>
-            <v-list-item-content>Histórico</v-list-item-content>
+          <v-list-item
+            @click="tela_atual = 'notificacoes'"
+            :class="{'active-menu-item': tela_atual === 'notificacoes'}"
+            class="menu-item-hover">
+            <v-list-item-icon><v-icon color="primary">mdi-bell</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-medium">Notificações</v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
-          <v-list-item @click="tela_atual = 'notificacoes'">
-            <v-list-item-icon><v-icon>mdi-cog</v-icon></v-list-item-icon>
-            <v-list-item-content>Notificacoes</v-list-item-content>
-          </v-list-item>
-          <v-list-item @click="tela_atual = 'configuracoes'">
-            <v-list-item-icon><v-icon>mdi-cog</v-icon></v-list-item-icon>
-            <v-list-item-content>Configurações</v-list-item-content>
+          <v-list-item
+            @click="tela_atual = 'configuracoes'"
+            :class="{'active-menu-item': tela_atual === 'configuracoes'}"
+            class="menu-item-hover">
+            <v-list-item-icon><v-icon color="primary">mdi-cog</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-medium">Configurações</v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
@@ -57,52 +86,110 @@
       <v-main>
         <v-container>
           <template v-if="tela_atual === 'dashboard'">
-            <h2>Dashboard</h2>
-            <v-row>
-              <!-- Campos para selecionar datas -->
-              <v-col cols="12" md="5">
-                <v-text-field
-                  v-model="filtros.dataInicio"
-                  label="Data Início"
-                  type="date"
-                  outlined
-                  dense
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" md="5">
-                <v-text-field
-                  v-model="filtros.dataFim"
-                  label="Data Fim"
-                  type="date"
-                  outlined
-                  dense
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-btn color="primary" block @click="carregarIndicadores">
-                  Filtrar
-                </v-btn>
-              </v-col>
-            </v-row>
-            <!-- Conteúdo do Dashboard -->
+            <div class="page-header mb-6">
+              <h2 class="text-h4 font-weight-bold primary--text">
+                <v-icon large color="primary" class="mr-2">mdi-chart-box</v-icon>
+                Dashboard
+              </h2>
+              <p class="text-subtitle-1 grey--text">Acompanhe suas estatísticas em tempo real</p>
+            </div>
+
+            <v-card class="mb-6 filter-card" elevation="2">
+              <v-card-text>
+                <v-row align="center">
+                  <v-col cols="12" md="5">
+                    <v-text-field
+                      v-model="filtros.dataInicio"
+                      label="Data Início"
+                      type="date"
+                      outlined
+                      dense
+                      prepend-inner-icon="mdi-calendar"
+                      hide-details
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="5">
+                    <v-text-field
+                      v-model="filtros.dataFim"
+                      label="Data Fim"
+                      type="date"
+                      outlined
+                      dense
+                      prepend-inner-icon="mdi-calendar"
+                      hide-details
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="2">
+                    <v-btn color="primary" block @click="carregarIndicadores" elevation="2" large>
+                      <v-icon left>mdi-filter</v-icon>
+                      Filtrar
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <!-- Cards de Indicadores -->
             <v-row>
               <v-col cols="12" md="4">
-                <v-card color="light-blue lighten-4" outlined>
-                  <v-card-title>Entregas do Dia</v-card-title>
-                  <v-card-text class="text-h5">{{ indicadores.entregasDoDia }}</v-card-text>
+                <v-card class="stat-card stat-card-blue" elevation="4" hover>
+                  <v-card-text>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <div>
+                        <p class="text-overline mb-0 white--text">Entregas do Dia</p>
+                        <h2 class="text-h3 font-weight-bold white--text">{{ indicadores.entregasDoDia }}</h2>
+                      </div>
+                      <v-avatar size="64" color="rgba(255,255,255,0.2)">
+                        <v-icon size="40" color="white">mdi-truck-delivery</v-icon>
+                      </v-avatar>
+                    </div>
+                    <v-divider class="divider-white"></v-divider>
+                    <p class="text-caption white--text mb-0 mt-2">
+                      <v-icon small color="white">mdi-information</v-icon>
+                      Total de entregas realizadas hoje
+                    </p>
+                  </v-card-text>
                 </v-card>
               </v-col>
+
               <v-col cols="12" md="4">
-                <v-card color="red lighten-4" outlined>
-                  <v-card-title>Cancelamentos</v-card-title>
-                  <v-card-text class="text-h5">{{ indicadores.cancelamentos }}</v-card-text>
+                <v-card class="stat-card stat-card-red" elevation="4" hover>
+                  <v-card-text>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <div>
+                        <p class="text-overline mb-0 white--text">Cancelamentos</p>
+                        <h2 class="text-h3 font-weight-bold white--text">{{ indicadores.cancelamentos }}</h2>
+                      </div>
+                      <v-avatar size="64" color="rgba(255,255,255,0.2)">
+                        <v-icon size="40" color="white">mdi-close-circle</v-icon>
+                      </v-avatar>
+                    </div>
+                    <v-divider class="divider-white"></v-divider>
+                    <p class="text-caption white--text mb-0 mt-2">
+                      <v-icon small color="white">mdi-information</v-icon>
+                      Entregas canceladas no período
+                    </p>
+                  </v-card-text>
                 </v-card>
               </v-col>
+
               <v-col cols="12" md="4">
-                <v-card color="green lighten-4" outlined>
-                  <v-card-title>Ganhos</v-card-title>
-                  <v-card-text class="text-h5">
-                    R$ {{ parseFloat(indicadores.ganhos)  }}
+                <v-card class="stat-card stat-card-green" elevation="4" hover>
+                  <v-card-text>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <div>
+                        <p class="text-overline mb-0 white--text">Ganhos</p>
+                        <h2 class="text-h3 font-weight-bold white--text">R$ {{ parseFloat(indicadores.ganhos) }}</h2>
+                      </div>
+                      <v-avatar size="64" color="rgba(255,255,255,0.2)">
+                        <v-icon size="40" color="white">mdi-cash-multiple</v-icon>
+                      </v-avatar>
+                    </div>
+                    <v-divider class="divider-white"></v-divider>
+                    <p class="text-caption white--text mb-0 mt-2">
+                      <v-icon small color="white">mdi-information</v-icon>
+                      Total acumulado no período
+                    </p>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -347,39 +434,104 @@
             </v-card>
           </template>
 
-          <v-dialog v-model="modalVisivel" fullscreen hide-overlay transition="dialog-bottom-transition">
-
-
-            <v-card>
-              <v-card-title class="headline">
-                Detalhes da Entrega
+          <v-dialog v-model="modalVisivel" max-width="700" persistent transition="dialog-transition">
+            <v-card class="modal-card-modern">
+              <v-card-title class="modal-header primary white--text">
+                <v-icon left color="white" large>mdi-package-variant</v-icon>
+                <span class="text-h5 font-weight-bold">Nova Entrega Disponível</span>
+                <v-spacer></v-spacer>
+                <v-btn icon dark @click="recusarEntrega">
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
               </v-card-title>
-              <v-card-text>
-                <div>
-                  <strong>Cliente:</strong> {{ entregaAtual?.client?.name || 'N/A' }}
-                </div>
-                <div>
-                  <strong>Endereço:</strong> {{ entregaAtual?.client?.endereco || 'N/A' }}
-                </div>
-                <div>
-                  <strong>Contato:</strong> {{ entregaAtual?.client?.telefone || 'N/A' }}
-                </div>
-                <div>
-                  <strong>Produto:</strong> {{ entregaAtual?.products[0]?.title || 'N/A' }}
-                </div>
-                <div>
-                  <strong>Preço:</strong> R$ {{ entregaAtual?.products?.[0]?.price ? entregaAtual.products[0].price.toFixed(2) : '0.00' }}
-                </div>
-                <div>
-                  <strong>Descrição:</strong> {{ entregaAtual?.products[0]?.description || 'N/A' }}
-                </div>
 
-              
-            </v-card-text>
+              <v-card-text class="pa-6">
+                <v-alert type="info" border="left" colored-border class="mb-4">
+                  <div class="d-flex align-center">
+                    <v-icon left>mdi-bell-ring</v-icon>
+                    <strong>Você recebeu um novo pedido de entrega!</strong>
+                  </div>
+                </v-alert>
+
+                <v-row>
+                  <v-col cols="12">
+                    <div class="info-section mb-4">
+                      <h4 class="text-h6 primary--text mb-3">
+                        <v-icon color="primary">mdi-account</v-icon>
+                        Informações do Cliente
+                      </h4>
+                      <v-list dense class="transparent">
+                        <v-list-item>
+                          <v-list-item-icon><v-icon color="primary">mdi-account-circle</v-icon></v-list-item-icon>
+                          <v-list-item-content>
+                            <v-list-item-subtitle>Nome</v-list-item-subtitle>
+                            <v-list-item-title class="font-weight-bold">{{ entregaAtual?.client?.name || 'N/A' }}</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-icon><v-icon color="primary">mdi-map-marker</v-icon></v-list-item-icon>
+                          <v-list-item-content>
+                            <v-list-item-subtitle>Endereço</v-list-item-subtitle>
+                            <v-list-item-title class="font-weight-bold">{{ entregaAtual?.client?.endereco || 'N/A' }}</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-icon><v-icon color="primary">mdi-phone</v-icon></v-list-item-icon>
+                          <v-list-item-content>
+                            <v-list-item-subtitle>Contato</v-list-item-subtitle>
+                            <v-list-item-title class="font-weight-bold">{{ entregaAtual?.client?.telefone || 'N/A' }}</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12">
+                    <v-divider></v-divider>
+                  </v-col>
+
+                  <v-col cols="12">
+                    <div class="info-section">
+                      <h4 class="text-h6 primary--text mb-3">
+                        <v-icon color="primary">mdi-package</v-icon>
+                        Detalhes do Produto
+                      </h4>
+                      <v-card outlined class="product-card">
+                        <v-card-text>
+                          <div class="d-flex align-center justify-space-between mb-2">
+                            <span class="text-subtitle-2 grey--text">Produto</span>
+                            <span class="font-weight-bold">{{ entregaAtual?.products[0]?.title || 'N/A' }}</span>
+                          </div>
+                          <div class="d-flex align-center justify-space-between mb-2">
+                            <span class="text-subtitle-2 grey--text">Preço</span>
+                            <span class="font-weight-bold green--text text-h6">
+                              R$ {{ entregaAtual?.products?.[0]?.price ? entregaAtual.products[0].price.toFixed(2) : '0.00' }}
+                            </span>
+                          </div>
+                          <v-divider class="my-2"></v-divider>
+                          <div>
+                            <span class="text-subtitle-2 grey--text">Descrição</span>
+                            <p class="mb-0 mt-1">{{ entregaAtual?.products[0]?.description || 'Sem descrição' }}</p>
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </div>
+                  </v-col>
+                </v-row>
               </v-card-text>
-              <v-card-actions>
-                <v-btn color="success" @click="aceitarEntrega">Aceitar</v-btn>
-                <v-btn color="error" @click="recusarEntrega">Recusar</v-btn>
+
+              <v-divider></v-divider>
+
+              <v-card-actions class="pa-4">
+                <v-btn color="error" text large @click="recusarEntrega">
+                  <v-icon left>mdi-close-circle</v-icon>
+                  Recusar
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn color="success" large elevation="2" @click="aceitarEntrega">
+                  <v-icon left>mdi-check-circle</v-icon>
+                  Aceitar Entrega
+                </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -877,29 +1029,310 @@ inserirEntrega() {
     });
   </script>
 
-<style scoped>
+<style>
+  /* Fonte Global */
+  * {
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  /* Fundo da Aplicação */
+  .v-application {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%) !important;
+  }
+
+  /* AppBar Moderna */
+  .app-bar-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3) !important;
+  }
+
+  .logout-btn {
+    transition: all 0.3s ease !important;
+  }
+
+  .logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4) !important;
+  }
+
+  /* Navigation Drawer */
+  .navigation-drawer-modern {
+    background: white !important;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .drawer-header {
+    text-align: center;
+    border-bottom: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+  }
+
+  .menu-item-hover {
+    margin: 4px 8px;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .menu-item-hover:hover {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%) !important;
+    transform: translateX(5px);
+  }
+
+  .active-menu-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+  }
+
+  .active-menu-item .v-list-item__title,
+  .active-menu-item .v-icon {
+    color: white !important;
+  }
+
+  /* Page Header */
+  .page-header {
+    animation: fadeInDown 0.5s ease;
+  }
+
+  /* Filter Card */
+  .filter-card {
+    border-radius: 16px !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .filter-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  /* Stat Cards com Gradientes */
+  .stat-card {
+    border-radius: 20px !important;
+    transition: all 0.3s ease !important;
+    animation: fadeInUp 0.6s ease;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .stat-card-blue {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  }
+
+  .stat-card-red {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  }
+
+  .stat-card-green {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  }
+
+  .divider-white {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Modal Moderna */
+  .modal-card-modern {
+    border-radius: 20px !important;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    padding: 24px !important;
+  }
+
+  .product-card {
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%) !important;
+    border: none !important;
+  }
+
+  /* Chat Box */
   .chat-box {
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
     margin-bottom: 16px;
+    padding: 16px;
+    background: #f5f7fa;
+    border-radius: 12px;
   }
+
   .mensagem {
-    padding: 8px;
-    margin: 4px 0;
-    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 16px;
+    max-width: 70%;
+    animation: messageSlide 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
+
   .cliente {
-    background-color: #e1f5fe;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: auto;
     text-align: right;
+    border-bottom-right-radius: 4px;
   }
+
   .entregador {
-    background-color: #fce4ec;
+    background: white;
+    color: #333;
+    margin-right: auto;
     text-align: left;
+    border-bottom-left-radius: 4px;
   }
+
   .campo-mensagem {
     flex: 1;
     margin-right: 8px;
   }
-  </style>
+
+  /* Animations */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes messageSlide {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Data Table Styling */
+  .v-data-table {
+    border-radius: 16px !important;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .v-data-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  }
+
+  .v-data-table thead th {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+
+  /* Buttons */
+  .v-btn {
+    border-radius: 12px !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .v-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .v-btn.v-btn--rounded {
+    border-radius: 28px !important;
+  }
+
+  /* Text Fields */
+  .v-text-field--outlined fieldset {
+    border-radius: 12px !important;
+    border-width: 2px !important;
+  }
+
+  .v-text-field--outlined:hover fieldset {
+    border-color: #667eea !important;
+  }
+
+  /* Cards Gerais */
+  .v-card {
+    border-radius: 16px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .v-card.elevation-2 {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .v-card.elevation-4 {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  /* Scrollbar Customizado */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  }
+
+  /* Alert Styles */
+  .v-alert {
+    border-radius: 12px !important;
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .stat-card {
+      margin-bottom: 16px;
+    }
+
+    .mensagem {
+      max-width: 85%;
+    }
+  }
+</style>
 </body>
 </html>
